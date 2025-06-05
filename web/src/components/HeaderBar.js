@@ -26,8 +26,17 @@ import {
   IconCreditCard,
   IconTerminal,
 } from '@douyinfe/semi-icons';
-import { Menu, Dropdown, Icon } from 'semantic-ui-react';
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  Layout,
+  Nav,
+  Switch,
+  Tag,
+} from '@douyinfe/semi-ui';
 import { stringToColor } from '../helpers/render';
+import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import { StyleContext } from '../context/Style/index.js';
 import { StatusContext } from '../context/Status/index.js';
 
@@ -217,50 +226,268 @@ const HeaderBar = () => {
   };
 
   return (
-    <Menu fixed='top' inverted stackable style={headerStyle}>
-      <Menu.Item onClick={() => styleDispatch({ type: 'TOGGLE_SIDER' })}>
-        <Icon name='bars' />
-      </Menu.Item>
-      <Menu.Item as={Link} to='/' header>
-        {logo && (
-          <img
-            src={logo}
-            alt='logo'
-            style={{ height: '24px', marginRight: '8px' }}
-          />
-        )}
-        {systemName}
-      </Menu.Item>
-      <Menu.Item as={Link} to='/pricing'>{t('定价')}</Menu.Item>
-      <Menu.Item as={Link} to='/about'>{t('关于')}</Menu.Item>
-      <Menu.Menu position='right'>
-        <Menu.Item onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-          {theme === 'dark' ? '🌞' : '🌙'}
-        </Menu.Item>
-        <Dropdown item text={currentLang} pointing>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => handleLanguageChange('zh')}>中文</Dropdown.Item>
-            <Dropdown.Item onClick={() => handleLanguageChange('en')}>English</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-        {userState.user ? (
-          <Dropdown item text={userState.user.username} pointing>
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={logout}>{t('退出')}</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        ) : (
-          <>
-            <Menu.Item as={Link} to='/login'>{t('登录')}</Menu.Item>
-            {!isSelfUseMode && (
-              <Menu.Item as={Link} to='/register'>
-                {t('注册')}
-              </Menu.Item>
-            )}
-          </>
-        )}
-      </Menu.Menu>
-    </Menu>
+    <>
+      <Layout>
+        <div style={{ width: '100%' }}>
+          <Nav
+            className={'topnav'}
+            mode={'horizontal'}
+            style={headerStyle}
+            itemStyle={headerItemStyle}
+            hoverStyle={headerItemHoverStyle}
+            renderWrapper={({ itemElement, isSubNav, isInSubNav, props }) => {
+              const routerMap = {
+                about: '/about',
+                login: '/login',
+                register: '/register',
+                pricing: '/pricing',
+                detail: '/detail',
+                home: '/',
+                chat: '/chat',
+              };
+              return (
+                <div
+                  onClick={(e) => {
+                    if (props.itemKey === 'home') {
+                      styleDispatch({
+                        type: 'SET_INNER_PADDING',
+                        payload: false,
+                      });
+                      styleDispatch({ type: 'SET_SIDER', payload: false });
+                    } else {
+                      styleDispatch({
+                        type: 'SET_INNER_PADDING',
+                        payload: true,
+                      });
+                      if (!styleState.isMobile) {
+                        styleDispatch({ type: 'SET_SIDER', payload: true });
+                      }
+                    }
+                  }}
+                >
+                  {props.isExternal ? (
+                    <a
+                      className='header-bar-text'
+                      style={{ textDecoration: 'none' }}
+                      href={props.externalLink}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {itemElement}
+                    </a>
+                  ) : (
+                    <Link
+                      className='header-bar-text'
+                      style={{ textDecoration: 'none' }}
+                      to={routerMap[props.itemKey]}
+                    >
+                      {itemElement}
+                    </Link>
+                  )}
+                </div>
+              );
+            }}
+            selectedKeys={[]}
+            // items={headerButtons}
+            onSelect={(key) => {}}
+            header={
+              styleState.isMobile
+                ? {
+                    logo: (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          position: 'relative',
+                        }}
+                      >
+                        {!styleState.showSider ? (
+                          <Button
+                            icon={<IconMenu />}
+                            theme='light'
+                            aria-label={t('展开侧边栏')}
+                            onClick={() =>
+                              styleDispatch({
+                                type: 'SET_SIDER',
+                                payload: true,
+                              })
+                            }
+                          />
+                        ) : (
+                          <Button
+                            icon={<IconIndentLeft />}
+                            theme='light'
+                            aria-label={t('闭侧边栏')}
+                            onClick={() =>
+                              styleDispatch({
+                                type: 'SET_SIDER',
+                                payload: false,
+                              })
+                            }
+                          />
+                        )}
+                        {(isSelfUseMode || isDemoSiteMode) && (
+                          <Tag
+                            color={isSelfUseMode ? 'purple' : 'blue'}
+                            style={{
+                              position: 'absolute',
+                              top: '-8px',
+                              right: '-15px',
+                              fontSize: '0.7rem',
+                              padding: '0 4px',
+                              height: 'auto',
+                              lineHeight: '1.2',
+                              zIndex: 1,
+                              pointerEvents: 'none',
+                            }}
+                          >
+                            {isSelfUseMode ? t('自用模式') : t('演示站点')}
+                          </Tag>
+                        )}
+                      </div>
+                    ),
+                  }
+                : {
+                    logo: (
+                      <div style={logoStyle}>
+                        <img src={logo} alt='logo' style={{ height: '28px' }} />
+                      </div>
+                    ),
+                    text: (
+                      <div
+                        style={{
+                          position: 'relative',
+                          display: 'inline-block',
+                        }}
+                      >
+                        <span style={systemNameStyle}>{systemName}</span>
+                        {(isSelfUseMode || isDemoSiteMode) && (
+                          <Tag
+                            color={isSelfUseMode ? 'purple' : 'blue'}
+                            style={{
+                              position: 'absolute',
+                              top: '-10px',
+                              right: '-25px',
+                              fontSize: '0.7rem',
+                              padding: '0 4px',
+                              whiteSpace: 'nowrap',
+                              zIndex: 1,
+                              boxShadow: '0 0 3px rgba(255, 255, 255, 0.7)',
+                            }}
+                          >
+                            {isSelfUseMode ? t('自用模式') : t('演示站点')}
+                          </Tag>
+                        )}
+                      </div>
+                    ),
+                  }
+            }
+            items={buttons}
+            footer={
+              <>
+                {isNewYear && (
+                  // happy new year
+                  <Dropdown
+                    position='bottomRight'
+                    render={
+                      <Dropdown.Menu style={dropdownStyle}>
+                        <Dropdown.Item onClick={handleNewYearClick}>
+                          Happy New Year!!!
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    }
+                  >
+                    <Nav.Item itemKey={'new-year'} text={'🎉'} />
+                  </Dropdown>
+                )}
+                {/* <Nav.Item itemKey={'about'} icon={<IconHelpCircle />} /> */}
+                <>
+                  <Switch
+                    checkedText='🌞'
+                    size={styleState.isMobile ? 'default' : 'large'}
+                    checked={theme === 'dark'}
+                    uncheckedText='🌙'
+                    style={switchStyle}
+                    onChange={(checked) => {
+                      setTheme(checked);
+                    }}
+                  />
+                </>
+                <Dropdown
+                  position='bottomRight'
+                  render={
+                    <Dropdown.Menu style={dropdownStyle}>
+                      <Dropdown.Item
+                        onClick={() => handleLanguageChange('zh')}
+                        type={currentLang === 'zh' ? 'primary' : 'tertiary'}
+                      >
+                        中文
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => handleLanguageChange('en')}
+                        type={currentLang === 'en' ? 'primary' : 'tertiary'}
+                      >
+                        English
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  }
+                >
+                  <Nav.Item
+                    itemKey={'language'}
+                    icon={<IconLanguage style={headerIconStyle} />}
+                  />
+                </Dropdown>
+                {userState.user ? (
+                  <>
+                    <Dropdown
+                      position='bottomRight'
+                      render={
+                        <Dropdown.Menu style={dropdownStyle}>
+                          <Dropdown.Item onClick={logout}>
+                            {t('退出')}
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      }
+                    >
+                      <Avatar
+                        size='small'
+                        color={stringToColor(userState.user.username)}
+                        style={avatarStyle}
+                      >
+                        {userState.user.username[0]}
+                      </Avatar>
+                      {styleState.isMobile ? null : (
+                        <Text style={{ marginLeft: '4px', fontWeight: '500' }}>
+                          {userState.user.username}
+                        </Text>
+                      )}
+                    </Dropdown>
+                  </>
+                ) : (
+                  <>
+                    <Nav.Item
+                      itemKey={'login'}
+                      text={!styleState.isMobile ? t('登录') : null}
+                      icon={<IconUser style={headerIconStyle} />}
+                    />
+                    {
+                      // Hide register option in self-use mode
+                      !styleState.isMobile && !isSelfUseMode && (
+                        <Nav.Item
+                          itemKey={'register'}
+                          text={t('注册')}
+                          icon={<IconKey style={headerIconStyle} />}
+                        />
+                      )
+                    }
+                  </>
+                )}
+              </>
+            }
+          ></Nav>
+        </div>
+      </Layout>
+    </>
   );
 };
 
